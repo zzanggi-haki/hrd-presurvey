@@ -283,9 +283,8 @@ async function submit() {
     }
     // Apps Script 응답은 3~10초 걸려서 기다리지 않고 브라우저가 뒤에서 보내게 한다 (페이지를 닫아도 전송은 이어짐)
     const body = JSON.stringify({ rows, submittedAt: new Date().toISOString() });
-    let queued = false;
-    try { queued = navigator.sendBeacon(ENDPOINT, new Blob([body], { type: "text/plain;charset=utf-8" })); } catch (e) {}
-    if (!queued) fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body }).catch(() => {});
+    // sendBeacon은 구글 로그인 쿠키를 같이 보내서 Apps Script가 거절함 → 쿠키 없이(credentials: omit) 보낸다
+    fetch(ENDPOINT, { method: "POST", mode: "no-cors", credentials: "omit", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body }).catch(() => {});
   }
   clear();
   st = { i: 0, a: {} };
