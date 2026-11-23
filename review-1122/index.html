@@ -135,8 +135,9 @@ body {
     <p class="sub">함께해 주셔서 감사해요! 🙌<br>커피 한 잔 하면서 수다 떠는 느낌으로 편하게 답해 주세요.<br>아쉬웠던 점, 막혔던 점도 솔직하게 적어 주시면 앞으로 클래스와 스터디를 준비할 때 그대로 반영할게요.</p>
     <div class="meta"><span>질문 11개</span><span>5분 안팎</span><span>3개는 누르기만</span></div>
     <div style="margin-top:22px">
-      <div class="otherlabel">성함 <span style="font-weight:500">(선택)</span></div>
-      <input class="input" id="nameInput" autocomplete="off" placeholder="비워 두셔도 괜찮아요">
+      <div class="otherlabel">성함</div>
+      <input class="input" id="nameInput" autocomplete="name" placeholder="성함을 적어 주세요">
+      <div class="err" id="nameErr" role="alert"></div>
     </div>
   </div>
   <div class="start-cta">
@@ -312,7 +313,13 @@ async function submit() {
   show("done");
 }
 
-$("startBtn").addEventListener("click", () => { st.a["이름"] = $("nameInput").value.trim(); save(); show("quiz"); renderQ(); });
+$("startBtn").addEventListener("click", () => {
+  const name = $("nameInput").value.trim();
+  if (!name) { $("nameErr").textContent = "성함을 적어 주세요."; $("nameInput").focus(); return; }
+  st.a["이름"] = name; save(); show("quiz"); renderQ();
+});
+$("nameInput").addEventListener("input", () => { $("nameErr").textContent = ""; });
+$("nameInput").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) $("startBtn").click(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { show(b.dataset.go); if (b.dataset.go === "quiz") renderQ(); }));
 $("homeBtn").addEventListener("click", () => show("start"));
 $("nextBtn").addEventListener("click", next);
