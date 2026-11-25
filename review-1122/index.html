@@ -178,7 +178,8 @@ body {
 const QS = [{"n": 1, "k": "01. 재미있었던 것", "t": "가장 재미있었던 건 뭐였어요?", "req": true, "ty": "long", "opts": [], "excl": [], "note": "이런 걸 했어요<br>· <b>인트로</b>: 서로를 소개하고 클로드를 소개한 시간<br>· <b>클로드 코드 톺아보기</b>: 화면 구성과 기본 사용법 둘러보기<br>· <b>도구 만들기 1</b>: 줌인 그림카드<br>· <b>OSMU</b>: 하나의 소스로 여러 채널의 콘텐츠 만들기<br>· <b>도구 만들기 2</b>: TA 진단<br>· <b>보너스 시연</b>: 강의자료 장표 만들기, 얼굴 그리기 게임<br>· <b>Q&amp;A</b>: 원래 궁금했던 걸 자유롭게 묻고 답하기", "sec": ""}, {"n": 2, "k": "02. 막혔던 것", "t": "어렵거나 막혔던 건요?", "req": true, "ty": "long", "opts": [], "excl": [], "note": "설치나 Vercel 연결에서 막힌 분이 많았어요. 무슨 일을 하는 건지 모르고 따라만 간 부분도 편하게 적어 주세요.<br><b>\"없었어요\"</b>도 괜찮아요.", "sec": ""}, {"n": 3, "k": "03. 다시 해 보려면 필요한 도움", "t": "혼자 다시 해 보려면 어떤 도움이 있으면 좋겠어요?", "req": true, "ty": "check", "opts": ["단계별 따라 하기 영상", "복습 모임", "1:1 질문 시간", "오늘 실습 정리본", "카톡으로 그때그때 질문", "기타"], "excl": [], "note": "", "sec": ""}, {"n": 4, "k": "04. 이후 해 본 것", "t": "클래스 이후에 클로드 코드나 다른 AI 도구로 해 본 게 있다면 골라 주세요", "req": true, "ty": "check", "opts": ["강의 자료(장표, 교안, 학습지)를 만들어 봤어요", "퀴즈, 설문, 게임 같은 수업용 활동을 만들어 봤어요", "간단한 웹페이지나 나만의 도구를 만들어 봤어요", "보고서, 기획서, 메일 같은 업무 문서를 써 봤어요", "엑셀이나 설문 결과 같은 데이터를 정리하거나 분석해 봤어요", "반복하던 업무를 자동으로 처리하게 해 봤어요", "ChatGPT, Codex, Gemini 같은 다른 AI 도구로 비슷한 걸 해 봤어요", "노션, 구글 드라이브, 캘린더 같은 서비스를 연결해 봤어요", "해 보고 싶은데 아직 시간을 못 냈어요", "열어 봤는데 막혀서 멈췄어요", "기타"], "excl": ["해 보고 싶은데 아직 시간을 못 냈어요"], "note": "해 본 걸 모두 골라 주세요. <b>아직 없어도</b> 괜찮아요.", "sec": ""}, {"n": 5, "k": "05. 못 물어본 것", "t": "수업 때 궁금했는데 못 물어본 게 있다면 골라 주세요", "req": true, "ty": "check", "opts": ["일을 잘 시키는 법 (지시문을 어떻게 써야 하는지)", "결과가 이상하게 나왔을 때 고치게 하는 법", "나만의 설정과 규칙을 저장해 두는 법 (CLAUDE.md, 스킬)", "노션, 구글 시트, 캘린더 같은 서비스와 연결하는 법 (MCP)", "정해진 시간에 자동으로 일하게 하는 법 (예약 작업)", "수강생 실습으로 쓸 때 주의할 점", "강사님들은 실제로 매일 어떻게 쓰는지", "딱히 없었어요", "기타"], "excl": ["딱히 없었어요"], "note": "고른 주제는 정리해서 따로 답을 드리거나 다음 모임에서 다룰게요.", "sec": ""}, {"n": 6, "k": "06. 스터디에서 배우고 싶은 것", "t": "이후에 스터디를 한다면, 추가로 배워 보고 싶은 게 있다면 아주 편하게 남겨 주세요!", "req": false, "ty": "long", "opts": [], "excl": [], "note": "", "sec": ""}];
 // 응답을 받을 구글 Apps Script 웹 앱 주소 (후기 전용 시트, 사전설문과 별개). 비어 있으면 보내지 않고 완료 화면만 보여 준다.
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbyjdFtI7ZMRz3WMwhcWjye-B-Ev7WoRtdF38pHZmIJWZvp3TCsCU5wFgjHkLGcNtwRgXw/exec";  // 시트: 11/22 클래스 후기 응답
-const KEY = "hrd-review-1122:draft";
+const KEY = "hrd-review-1122:draft-v2";  // 문항 구성이 바뀌면 버전을 올려 옛 임시저장을 버린다
+try { localStorage.removeItem("hrd-review-1122:draft"); } catch (e) {}
 const SHEET = "후기_1122";  // Apps Script가 이 이름의 탭에 쌓는다
 const OTHER = ["기타", "직접 입력"];  // 고르면 직접 적는 칸이 열리는 선택지
 
@@ -186,7 +187,7 @@ const $ = id => document.getElementById(id);
 let st = { i: 0, a: {} };
 
 function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
-function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.a) st = s; } catch (e) {} }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.a) st = s; if (!(st.i >= 0 && st.i < QS.length)) st.i = 0; } catch (e) {} }
 function clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
 function show(id) {
