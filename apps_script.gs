@@ -1,8 +1,10 @@
-// 사전 설문 응답 → 구글 시트 '응답' 탭에 한 줄씩 쌓는 Apps Script
-// 설문 페이지가 { rows: {"01. 이름": "...", ...}, submittedAt: "ISO 시각" } 을 POST 한다.
+// 사전 설문 응답 → 구글 시트에 한 줄씩 쌓는 Apps Script
+// 설문 페이지가 { sheet: "탭 이름", rows: {"01. 이름": "...", ...}, submittedAt: "ISO 시각" } 을 POST 한다.
+// sheet가 없으면(11/22 설문) '응답' 탭, "12/6 설문"이면 '12/6 설문' 탭에 쌓는다. 탭이 없으면 새로 만든다.
 // 열 이름(1행)은 처음 받은 응답 기준으로 만들고, 새 문항이 생기면 오른쪽에 열을 덧붙인다.
 
-const SHEET_NAME = "응답";
+const SHEET_NAME = "응답";                       // 기본 탭 (11/22 설문)
+const ALLOWED_SHEETS = ["응답", "12/6 설문"];     // 이 목록에 있는 이름만 받는다 (엉뚱한 탭이 생기지 않게)
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -11,7 +13,8 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const rows = data.rows || {};
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+    const name = ALLOWED_SHEETS.indexOf(data.sheet) !== -1 ? data.sheet : SHEET_NAME;
+    const sheet = ss.getSheetByName(name) || ss.insertSheet(name);
 
     let headers = sheet.getLastRow() > 0
       ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
@@ -42,9 +45,10 @@ function doPost(e) {
   }
 }
 
-// 배포 전 편집기에서 실행해 보는 용도: '응답' 탭에 테스트 한 줄이 생기면 정상
+// 배포 전 편집기에서 실행해 보는 용도: '12/6 설문' 탭에 테스트 한 줄이 생기면 정상 (확인 후 그 줄은 지우기)
 function testPost() {
   doPost({ postData: { contents: JSON.stringify({
+    sheet: "12/6 설문",
     rows: { "01. 이름": "테스트", "02. 강의 분야": "리더십·조직문화" },
     submittedAt: new Date().toISOString()
   }) } });
